@@ -5,8 +5,13 @@ This script will analyze using [AWS Access Analyzer](https://docs.aws.amazon.com
 ## Requirements
 
 - Python3
+- virtualenv
 
 ## Usage
+
+> ProTip :bulb: : Use AWS CloudShell to run this directly on your AWS Account
+> 
+> run: `sudo python3 -m pip install virtualenv` first (on CloudShell)
 
         $ make install
         $ make run
