@@ -1,0 +1,16 @@
+on:
+  push:
+    branches:
+    - dev
+
+jobs:
+  pull-request:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v1
+    - name: pull-request
+      uses: repo-sync/pull-request@v2
+      with:
+        pr_reviewer: "z0ph"
+        pr_assignee: "z0ph"
+        github_token: ${{ secrets.GITHUB_TOKEN }}
