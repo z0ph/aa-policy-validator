@@ -57,7 +57,7 @@ def get_policies():
         writer = open(path_output, "w")
         writer.write(str(doc))
         writer.close()
-    logging.info("Policies Count: %s", count_policy)
+    logging.debug("Policies Count: %s", count_policy)
 
 
 # Validate with AA for each Policy
