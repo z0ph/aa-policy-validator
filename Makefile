@@ -12,8 +12,6 @@ clean-venv:
 
 install: venv
 	venv/bin/pip install -U -r requirements.txt
-	mkdir -p aa-policy-validator/findings
-	mkdir -p aa-policy-validator/policies
 
 run:
 	venv/bin/python3 aa-policy-validator/validate-batch.py
