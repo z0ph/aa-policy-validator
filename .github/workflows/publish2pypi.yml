@@ -1,13 +1,11 @@
-name: Publish Python 🐍 distributions 📦 to PyPI
+name: Publish Python 🐍 package 📦 to PyPI
 
 on: 
-  push:
-    branches:
-    - dev
+  workflow_dispatch:
 
 jobs:
   build-n-publish:
-    name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
+    name: Build and publish Python 🐍 package 📦 to PyPI
     runs-on: ubuntu-18.04
 
     steps:
