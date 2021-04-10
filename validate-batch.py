@@ -1,6 +1,7 @@
 import boto3
 import json
 import glob
+import logging
 import os
 from datetime import date
 from collections import OrderedDict
@@ -8,6 +9,13 @@ from collections import OrderedDict
 # Date
 today = date.today()
 date = today.strftime("%Y-%m-%d")
+
+# Setup logging
+root = logging.getLogger()
+if root.handlers:
+    for handler in root.handlers:
+        root.removeHandler(handler)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',level=logging.INFO)
 
 
 # Empty ./findings/ folder
@@ -27,7 +35,7 @@ def get_policies():
             MaxItems=1000
         )
     except Exception as e:
-        print(e)
+        logging.error(e)
     policies = r["Policies"]
     count_policy = 0
     for policy in policies:
@@ -35,24 +43,21 @@ def get_policies():
         PolicyName = policy["PolicyName"]
         DefaultVersionId = policy["DefaultVersionId"]
         Arn = policy["Arn"]
-        print("PolicyName:", PolicyName)
-        print("DefaultVersionId:", DefaultVersionId)
-        print("Arn:", Arn)
+        logging.info("GetPolicy: %s", PolicyName)
         try:
             r = client.get_policy_version(
                 PolicyArn=Arn,
                 VersionId=DefaultVersionId
             )
         except Exception as e:
-            print(e)
+            logging.error(e)
 
-        print(r['PolicyVersion']['Document'])
         doc = json.dumps(r['PolicyVersion']['Document'], indent=4, sort_keys=True)
         path_output = "./policies/" + PolicyName + ".json"
         writer = open(path_output, "w")
         writer.write(str(doc))
         writer.close()
-    print("Count:", count_policy)
+    logging.info("Policies Count: %s", count_policy)
 
 
 # Validate with AA for each Policy
@@ -70,7 +75,7 @@ def validate_policies():
         policy_name = f.replace("./policies/", "")
         analyzed_count += 1
         with open(f) as policy:
-            print("==> Validation of:", f)
+            logging.info("Validation of: %s", f)
             policy = policy.read()
             policy = json.loads(policy)
             doc = json.dumps(policy)
@@ -98,9 +103,9 @@ def validate_policies():
             # More readable output (json)
             readable_findings = json.dumps(findings, indent=4, sort_keys=True)
             if readable_findings != "[]":
-                print("==> Finding:", readable_findings)
+                logging.info("==> Issue detected!")
             else:
-                print("==> Finding: No issue detected")
+                logging.info("==> No issue detected")
 
             # Export to findings (if not empty) folder with a json file per AWS Managed Policy
             if len(findings) > 0:
@@ -167,16 +172,14 @@ def output_writer(analyzed_count, error, fail, sec_warning, suggestion, warning,
 
 
 def stats(analyzed_count, error, fail, sec_warning, suggestion, warning):
-    print("\n")
-    print("======== stats =======")
-    print("policies analyzed:", analyzed_count)
-    print("errors:", error)
-    print("sec_warnings:", sec_warning)
-    print("suggestions:", suggestion)
-    print("warnings:", warning)
-    print("fail:", fail)
-    print("======================")
-
+    logging.info("======== stats =======")
+    logging.info("policies analyzed: %s", analyzed_count)
+    logging.info("errors: %s", error)
+    logging.info("sec_warnings: %s", sec_warning)
+    logging.info("suggestions: %s", suggestion)
+    logging.info("warnings: %s", warning)
+    logging.info("fail: %s", fail)
+    logging.info("======================")
 
 def main(event, context):
     get_policies()
