@@ -1,4 +1,9 @@
 from distutils.core import setup
+from os import path
+
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
 setup(
     name = 'aa-policy-validator',         # How you named your package folder (MyLib)
@@ -6,6 +11,8 @@ setup(
     version = '0.2',      # Start with a small number and increase it with every change you make
     license='MIT',        # Chose a license from here: https://help.github.com/articles/licensing-a-repository
     description = 'Run AWS Access Analyzer Policy Validation against all your IAM Policies (account-wide)',   # Give a short description about your library
+    long_description=long_description,
+    long_description_content_type='text/markdown'
     author = 'Victor GRENU',                   # Type in your name
     author_email = 'vgrenu@zoph.io',      # Type in your E-Mail
     url = 'https://github.com/z0ph/aa-policy-validator',   # Provide either the link to your github or to your website
