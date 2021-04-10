@@ -1,8 +1,9 @@
 name: Publish Python 🐍 distributions 📦 to PyPI
 
-on: push
-  branches:
-  - dev
+on: 
+  push:
+    branches:
+    - dev
 
 build-n-publish:
   name: Build and publish Python 🐍 distributions 📦 to PyPI and TestPyPI
