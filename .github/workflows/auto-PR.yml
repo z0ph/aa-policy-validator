@@ -13,4 +13,5 @@ jobs:
       with:
         pr_reviewer: "z0ph"
         pr_assignee: "z0ph"
+        destination_branch: "main"
         github_token: ${{ secrets.GITHUB_TOKEN }}
