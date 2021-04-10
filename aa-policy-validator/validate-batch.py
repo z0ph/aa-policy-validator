@@ -179,7 +179,6 @@ def stats(analyzed_count, error, fail, sec_warning, suggestion, warning):
     logging.info("suggestions: %s", suggestion)
     logging.info("warnings: %s", warning)
     logging.info("fail: %s", fail)
-    logging.info("======================")
 
 def main(event, context):
     get_policies()
