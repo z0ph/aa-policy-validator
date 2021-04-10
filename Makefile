@@ -4,9 +4,6 @@ help:
 	@echo "install - get started with batch policy validator"
 	@echo "run - run local validation of your AWS Account IAM Policies"
 
-
-SCOPE := Local
-
 venv: clean-venv
 	virtualenv --python=python3 venv
 
