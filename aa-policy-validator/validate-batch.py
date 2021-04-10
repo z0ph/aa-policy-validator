@@ -180,7 +180,7 @@ def stats(analyzed_count, error, fail, sec_warning, suggestion, warning):
     logging.info("warnings: %s", warning)
     logging.info("fail: %s", fail)
 
-def main(event, context):
+def main():
     get_policies()
     clean_findings_folder()
     analyzed_count, error, fail, sec_warning, suggestion, warning, \
@@ -191,4 +191,4 @@ def main(event, context):
 
 
 if __name__ == '__main__':
-    main(0, 0)
+    main()
