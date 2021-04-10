@@ -17,6 +17,11 @@ if root.handlers:
         root.removeHandler(handler)
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',level=logging.INFO)
 
+def create_folders():
+    if not os.path.exists('./policies'):
+        os.makedirs('./policies')
+    if not os.path.exists('./findings'):
+        os.makedirs('./findings')
 
 # Empty ./findings/ folder
 def clean_findings_folder():
@@ -182,6 +187,7 @@ def stats(analyzed_count, error, fail, sec_warning, suggestion, warning):
 
 def main():
     get_policies()
+    create_folders()
     clean_findings_folder()
     analyzed_count, error, fail, sec_warning, suggestion, warning, \
         error_list, fail_list, sec_warning_list, suggestion_list, warning_list = validate_policies()
