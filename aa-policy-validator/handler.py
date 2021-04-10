@@ -1,5 +1,6 @@
 import boto3
 import json
+import sys
 import glob
 import logging
 import os
@@ -19,9 +20,15 @@ logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',level=log
 
 def create_folders():
     if not os.path.exists('./policies'):
-        os.makedirs('./policies')
+        try:
+            os.makedirs('./policies')
+        except OSError as e:
+            logging.error(e)
     if not os.path.exists('./findings'):
-        os.makedirs('./findings')
+        try:
+            os.makedirs('./findings')
+        except OSError as e:
+            logging.error(e)
 
 # Empty ./findings/ folder
 def clean_findings_folder():
@@ -39,30 +46,33 @@ def get_policies():
             Scope=scope,
             MaxItems=1000
         )
+        policies = r["Policies"]
+        count_policy = 0
+        for policy in policies:
+            count_policy += 1
+            PolicyName = policy["PolicyName"]
+            DefaultVersionId = policy["DefaultVersionId"]
+            Arn = policy["Arn"]
+            logging.info("GetPolicy: %s", PolicyName)
+            try:
+                r = client.get_policy_version(
+                    PolicyArn=Arn,
+                    VersionId=DefaultVersionId
+                )
+            except Exception as e:
+                logging.error(e)
+                sys.exit(1)
+
+            doc = json.dumps(r['PolicyVersion']['Document'], indent=4, sort_keys=True)
+            path_output = "./policies/" + PolicyName + ".json"
+            writer = open(path_output, "w")
+            writer.write(str(doc))
+            writer.close()
+        logging.debug("Policies Count: %s", count_policy)
+
     except Exception as e:
         logging.error(e)
-    policies = r["Policies"]
-    count_policy = 0
-    for policy in policies:
-        count_policy += 1
-        PolicyName = policy["PolicyName"]
-        DefaultVersionId = policy["DefaultVersionId"]
-        Arn = policy["Arn"]
-        logging.info("GetPolicy: %s", PolicyName)
-        try:
-            r = client.get_policy_version(
-                PolicyArn=Arn,
-                VersionId=DefaultVersionId
-            )
-        except Exception as e:
-            logging.error(e)
-
-        doc = json.dumps(r['PolicyVersion']['Document'], indent=4, sort_keys=True)
-        path_output = "./policies/" + PolicyName + ".json"
-        writer = open(path_output, "w")
-        writer.write(str(doc))
-        writer.close()
-    logging.debug("Policies Count: %s", count_policy)
+        sys.exit(1)
 
 
 # Validate with AA for each Policy
