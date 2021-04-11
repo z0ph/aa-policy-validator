@@ -1,6 +1,9 @@
 name: Manually Publish Python 🐍 package 📦 to PyPI
 
 on:
+  push:
+    branches:
+    - dev
   workflow_dispatch:
 
 jobs:
