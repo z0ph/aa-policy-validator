@@ -1,6 +1,8 @@
 import boto3
 import json
+import sys
 import glob
+import logging
 import os
 from datetime import date
 from collections import OrderedDict
@@ -9,10 +11,33 @@ from collections import OrderedDict
 today = date.today()
 date = today.strftime("%Y-%m-%d")
 
+# Paths
+policies_path = "/tmp/policies"
+findings_path = "/tmp/findings"
+
+# Setup logging
+root = logging.getLogger()
+if root.handlers:
+    for handler in root.handlers:
+        root.removeHandler(handler)
+logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',level=logging.INFO)
+
+def create_folders():
+    if not os.path.exists(policies_path):
+        try:
+            os.makedirs(policies_path)
+        except OSError as e:
+            logging.error(e)
+    if not os.path.exists(findings_path):
+        try:
+            os.makedirs(findings_path)
+        except OSError as e:
+            logging.error(e)
 
 # Empty ./findings/ folder
 def clean_findings_folder():
-    finds = glob.glob('./findings/*')
+    glob_path = findings_path + "/*"
+    finds = glob.glob(glob_path)
     for find in finds:
         os.remove(find)
 
@@ -26,33 +51,33 @@ def get_policies():
             Scope=scope,
             MaxItems=1000
         )
-    except Exception as e:
-        print(e)
-    policies = r["Policies"]
-    count_policy = 0
-    for policy in policies:
-        count_policy += 1
-        PolicyName = policy["PolicyName"]
-        DefaultVersionId = policy["DefaultVersionId"]
-        Arn = policy["Arn"]
-        print("PolicyName:", PolicyName)
-        print("DefaultVersionId:", DefaultVersionId)
-        print("Arn:", Arn)
-        try:
-            r = client.get_policy_version(
-                PolicyArn=Arn,
-                VersionId=DefaultVersionId
-            )
-        except Exception as e:
-            print(e)
+        policies = r["Policies"]
+        count_policy = 0
+        for policy in policies:
+            count_policy += 1
+            PolicyName = policy["PolicyName"]
+            DefaultVersionId = policy["DefaultVersionId"]
+            Arn = policy["Arn"]
+            logging.info("GetPolicy: %s", PolicyName)
+            try:
+                r = client.get_policy_version(
+                    PolicyArn=Arn,
+                    VersionId=DefaultVersionId
+                )
+            except Exception as e:
+                logging.error(e)
+                sys.exit(1)
 
-        print(r['PolicyVersion']['Document'])
-        doc = json.dumps(r['PolicyVersion']['Document'], indent=4, sort_keys=True)
-        path_output = "./policies/" + PolicyName + ".json"
-        writer = open(path_output, "w")
-        writer.write(str(doc))
-        writer.close()
-    print("Count:", count_policy)
+            doc = json.dumps(r['PolicyVersion']['Document'], indent=4, sort_keys=True)
+            path_output = policies_path + "/" + PolicyName + ".json"
+            writer = open(path_output, "w")
+            writer.write(str(doc))
+            writer.close()
+        logging.debug("Policies Count: %s", count_policy)
+
+    except Exception as e:
+        logging.error(e)
+        sys.exit(1)
 
 
 # Validate with AA for each Policy
@@ -64,13 +89,13 @@ def validate_policies():
     sec_warning_list = []
     suggestion_list = []
     warning_list = []
-    policy_path = './policies'
+    policy_path = '/tmp/policies'
     files = [f for f in glob.glob(policy_path + "**/*", recursive=True)]
     for f in files[:to_analyze]:
-        policy_name = f.replace("./policies/", "")
+        policy_name = f.replace("/tmp/policies/", "")
         analyzed_count += 1
         with open(f) as policy:
-            print("==> Validation of:", f)
+            logging.info("Validation of: %s", f)
             policy = policy.read()
             policy = json.loads(policy)
             doc = json.dumps(policy)
@@ -88,7 +113,8 @@ def validate_policies():
                 # Distinct list
                 fail_list = list(OrderedDict.fromkeys(fail_list))
                 # Write errors to a log file
-                error_output = open("./findings/fails.txt", "w")
+                error_path = findings_path + "/fails.txt"
+                error_output = open(error_path, "w")
                 error_output.write(str(f) + '\n')
                 error_output.write(str(e))
                 error_output.close()
@@ -98,16 +124,16 @@ def validate_policies():
             # More readable output (json)
             readable_findings = json.dumps(findings, indent=4, sort_keys=True)
             if readable_findings != "[]":
-                print("==> Finding:", readable_findings)
+                logging.info("==> Issue detected!")
             else:
-                print("==> Finding: No issue detected")
+                logging.info("==> No issue detected")
 
             # Export to findings (if not empty) folder with a json file per AWS Managed Policy
             if len(findings) > 0:
                 file_name = f.split("/")
-                file_name = file_name[2]
+                file_name = file_name[3]
 
-                results = "./findings/" + file_name + ".json"
+                results = findings_path + "/" + file_name
                 finding_output = open(results, "a")
                 finding_output.write(readable_findings)
                 finding_output.close()
@@ -144,41 +170,41 @@ def validate_policies():
 def output_writer(analyzed_count, error, fail, sec_warning, suggestion, warning,
     error_list, fail_list, sec_warning_list, suggestion_list, warning_list):
 
-    stats_output = open("./findings/README.md", "a")
+    stats_path = findings_path + "/README.md"
+    stats_output = open(stats_path, "a")
     stats_output.write("## AWS Access Analyzer - Findings - " + str(date) + "\n\n")
     stats_output.write("- Policies analyzed: `" + str(analyzed_count) + "`\n")
     stats_output.write("- Errors: `" + str(error) + "`\n")
     for i in error_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.write("- Sec_Warnings: `" + str(sec_warning) + "`\n")
     for i in sec_warning_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.write("- Suggestions: `" + str(suggestion) + "`\n")
     for i in suggestion_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.write("- Warnings: `" + str(warning) + "`\n")
     for i in warning_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.write("- Fails: `" + str(fail) + "`\n")
     for i in fail_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.close()
 
 
 
 def stats(analyzed_count, error, fail, sec_warning, suggestion, warning):
-    print("\n")
-    print("======== stats =======")
-    print("policies analyzed:", analyzed_count)
-    print("errors:", error)
-    print("sec_warnings:", sec_warning)
-    print("suggestions:", suggestion)
-    print("warnings:", warning)
-    print("fail:", fail)
-    print("======================")
+    logging.info("======== stats =======")
+    logging.info("policies analyzed: %s", analyzed_count)
+    logging.info("errors: %s", error)
+    logging.info("sec_warnings: %s", sec_warning)
+    logging.info("suggestions: %s", suggestion)
+    logging.info("warnings: %s", warning)
+    logging.info("fail: %s", fail)
+    logging.info("check %s folder for detailled findings!", findings_path)
 
-
-def main(event, context):
+def main():
+    create_folders()
     get_policies()
     clean_findings_folder()
     analyzed_count, error, fail, sec_warning, suggestion, warning, \
@@ -189,4 +215,4 @@ def main(event, context):
 
 
 if __name__ == '__main__':
-    main(0, 0)
+    main()
