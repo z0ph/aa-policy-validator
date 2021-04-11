@@ -3,7 +3,7 @@ name: Publish Python 🐍 package 📦 to PyPI
 on:
   push:
     branches:
-    - dev
+    - main
   workflow_dispatch:
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
             --outdir dist/
             .
         - name: Publish distribution 📦 to PyPI
-          #if: startsWith(github.ref, 'refs/tags')
+          if: startsWith(github.ref, 'refs/tags')
           uses: pypa/gh-action-pypi-publish@master
           with:
             password: ${{ secrets.PYPI_API_TOKEN }}
