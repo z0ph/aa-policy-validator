@@ -1,6 +1,6 @@
 name: Publish Python 🐍 package 📦 to PyPI
 
-on: 
+on:
   workflow_dispatch:
 
 jobs:
