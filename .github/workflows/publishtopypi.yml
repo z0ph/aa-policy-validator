@@ -1,4 +1,4 @@
-name: Publish Python 🐍 package 📦 to PyPI
+name: Manually Publish Python 🐍 package 📦 to PyPI
 
 on:
   workflow_dispatch:
