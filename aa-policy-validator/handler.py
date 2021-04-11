@@ -131,9 +131,9 @@ def validate_policies():
             # Export to findings (if not empty) folder with a json file per AWS Managed Policy
             if len(findings) > 0:
                 file_name = f.split("/")
-                file_name = file_name[2]
+                file_name = file_name[3]
 
-                results = findings_path + "/" + file_name + ".json"
+                results = findings_path + "/" + file_name
                 finding_output = open(results, "a")
                 finding_output.write(readable_findings)
                 finding_output.close()
@@ -176,19 +176,19 @@ def output_writer(analyzed_count, error, fail, sec_warning, suggestion, warning,
     stats_output.write("- Policies analyzed: `" + str(analyzed_count) + "`\n")
     stats_output.write("- Errors: `" + str(error) + "`\n")
     for i in error_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.write("- Sec_Warnings: `" + str(sec_warning) + "`\n")
     for i in sec_warning_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.write("- Suggestions: `" + str(suggestion) + "`\n")
     for i in suggestion_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.write("- Warnings: `" + str(warning) + "`\n")
     for i in warning_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.write("- Fails: `" + str(fail) + "`\n")
     for i in fail_list:
-        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ".json)\n")
+        stats_output.write("  - [`" + str(i) + "`](./" + str(i) + ")\n")
     stats_output.close()
 
 
