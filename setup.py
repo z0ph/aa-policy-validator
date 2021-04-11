@@ -19,7 +19,7 @@ setup(
     download_url = 'https://github.com/z0ph/aa-policy-validator/archive/refs/tags/0.5.tar.gz',    # I explain this later on
     keywords = ['AWS', 'IAM', 'AccessAnalyzer', 'PolicyValidation'],   # Keywords that define your package best
     install_requires=[            # I get to this in a second
-            'boto3',
+            'boto3==1.17.27',
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',      # Chose either "3 - Alpha", "4 - Beta" or "5 - Production/Stable" as the current state of your package
