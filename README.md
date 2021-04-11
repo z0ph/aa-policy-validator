@@ -8,9 +8,13 @@ This script will analyze using [AWS Access Analyzer - Policy Validation](https:/
 
 ### Install
 
-        $ pip3 install aa-policy-valitor
+        $ python3 -m pip install aa-policy-validator --user
 ### Run
         $ python3 -m aa-policy-validator
+
+### Update
+
+        $ python3 -m pip install aa-policy-validator -U --user --no-cache-dir
 ## Results
 
 Results will be written into `/tmp/findings` folder with a `README.md` file inside.

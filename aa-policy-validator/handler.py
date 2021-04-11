@@ -201,6 +201,7 @@ def stats(analyzed_count, error, fail, sec_warning, suggestion, warning):
     logging.info("suggestions: %s", suggestion)
     logging.info("warnings: %s", warning)
     logging.info("fail: %s", fail)
+    logging.info("check %s folder for detailled findings!", findings_path)
 
 def main():
     create_folders()
