@@ -11,6 +11,10 @@ from collections import OrderedDict
 today = date.today()
 date = today.strftime("%Y-%m-%d")
 
+# Paths
+policies_path = "/tmp/policies"
+findings_path = "/tmp/findings"
+
 # Setup logging
 root = logging.getLogger()
 if root.handlers:
@@ -19,20 +23,21 @@ if root.handlers:
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s',level=logging.INFO)
 
 def create_folders():
-    if not os.path.exists('./policies'):
+    if not os.path.exists(policies_path):
         try:
-            os.makedirs('./policies')
+            os.makedirs(policies_path)
         except OSError as e:
             logging.error(e)
-    if not os.path.exists('./findings'):
+    if not os.path.exists(findings_path):
         try:
-            os.makedirs('./findings')
+            os.makedirs(findings_path)
         except OSError as e:
             logging.error(e)
 
 # Empty ./findings/ folder
 def clean_findings_folder():
-    finds = glob.glob('./findings/*')
+    glob_path = findings_path + "/*"
+    finds = glob.glob(glob_path)
     for find in finds:
         os.remove(find)
 
@@ -64,7 +69,7 @@ def get_policies():
                 sys.exit(1)
 
             doc = json.dumps(r['PolicyVersion']['Document'], indent=4, sort_keys=True)
-            path_output = "./policies/" + PolicyName + ".json"
+            path_output = policies_path + "/" + PolicyName + ".json"
             writer = open(path_output, "w")
             writer.write(str(doc))
             writer.close()
@@ -84,10 +89,10 @@ def validate_policies():
     sec_warning_list = []
     suggestion_list = []
     warning_list = []
-    policy_path = './policies'
+    policy_path = '/tmp/policies'
     files = [f for f in glob.glob(policy_path + "**/*", recursive=True)]
     for f in files[:to_analyze]:
-        policy_name = f.replace("./policies/", "")
+        policy_name = f.replace("/tmp/policies/", "")
         analyzed_count += 1
         with open(f) as policy:
             logging.info("Validation of: %s", f)
@@ -108,7 +113,8 @@ def validate_policies():
                 # Distinct list
                 fail_list = list(OrderedDict.fromkeys(fail_list))
                 # Write errors to a log file
-                error_output = open("./findings/fails.txt", "w")
+                error_path = findings_path + "/fails.txt"
+                error_output = open(error_path, "w")
                 error_output.write(str(f) + '\n')
                 error_output.write(str(e))
                 error_output.close()
@@ -127,7 +133,7 @@ def validate_policies():
                 file_name = f.split("/")
                 file_name = file_name[2]
 
-                results = "./findings/" + file_name + ".json"
+                results = findings_path + "/" + file_name + ".json"
                 finding_output = open(results, "a")
                 finding_output.write(readable_findings)
                 finding_output.close()
@@ -164,7 +170,8 @@ def validate_policies():
 def output_writer(analyzed_count, error, fail, sec_warning, suggestion, warning,
     error_list, fail_list, sec_warning_list, suggestion_list, warning_list):
 
-    stats_output = open("./findings/README.md", "a")
+    stats_path = findings_path + "/README.md"
+    stats_output = open(stats_path, "a")
     stats_output.write("## AWS Access Analyzer - Findings - " + str(date) + "\n\n")
     stats_output.write("- Policies analyzed: `" + str(analyzed_count) + "`\n")
     stats_output.write("- Errors: `" + str(error) + "`\n")
@@ -196,8 +203,8 @@ def stats(analyzed_count, error, fail, sec_warning, suggestion, warning):
     logging.info("fail: %s", fail)
 
 def main():
-    get_policies()
     create_folders()
+    get_policies()
     clean_findings_folder()
     analyzed_count, error, fail, sec_warning, suggestion, warning, \
         error_list, fail_list, sec_warning_list, suggestion_list, warning_list = validate_policies()
